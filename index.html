@@ -29,6 +29,10 @@
     }
 
     * { box-sizing: border-box; }
+    ::selection {
+      background: var(--orchid);
+      color: var(--bg-deep);
+    }
     html { scroll-behavior: smooth; background: var(--bg-deep); }
     body {
       margin: 0;
@@ -466,9 +470,13 @@
       min-height: 108px;
       border-left: 3px solid var(--orchid);
       transform-style: preserve-3d;
-      transition: transform 380ms ease, border-color 180ms ease, box-shadow 180ms ease;
+      transform: rotateY(-20deg) rotateX(6deg);
+      transition: transform 450ms cubic-bezier(0.25, 0.8, 0.25, 1), border-color 180ms ease, box-shadow 180ms ease;
     }
-    .info-card:hover { transform: rotateY(8deg) rotateX(4deg) translateY(-4px); }
+    .info-card:hover {
+      transform: rotateY(0deg) rotateX(0deg) translateZ(30px) translateY(-6px);
+      box-shadow: 0 38px 90px rgba(198, 120, 168, 0.25);
+    }
     .label, .project-kicker, .skill-label {
       display: block;
       margin-bottom: 0.55rem;
@@ -775,6 +783,31 @@
       font-family: "JetBrains Mono", monospace;
       font-size: 0.82rem;
     }
+    .footer-inner span {
+      transition: color 250ms ease, text-shadow 250ms ease;
+    }
+    .footer-inner span:hover {
+      color: #ff10f0;
+      text-shadow: 
+        0 0 4px #ff10f0,
+        0 0 10px #ff10f0,
+        0 0 20px #ff10f0,
+        0 0 35px #ff10f0,
+        0 0 55px #ff10f0;
+    }
+
+    @media (min-width: 941px) {
+      html {
+        scroll-snap-type: y mandatory;
+      }
+      .section {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+      }
+      footer {
+        scroll-snap-align: end;
+      }
+    }
 
     @media (max-width: 940px) {
       body { cursor: auto; }
@@ -802,6 +835,8 @@
       .about-grid, .contact-grid { grid-template-columns: 1fr; }
       .skills-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .project-card, .project-card.featured { grid-column: span 6; }
+      .info-card { transform: none !important; }
+      .info-card:hover { transform: none !important; }
     }
 
     @media (max-width: 640px) {
@@ -1047,8 +1082,8 @@
 
   <footer>
     <div class="footer-inner">
-      <span>Zeina Wael Mohamed</span>
-      <span>© 2026 · Backend .NET Developer</span>
+      <span>© 2026 Zeina Wael Mohamed</span>
+      <span>Backend .NET Developer</span>
     </div>
   </footer>
 
@@ -1092,7 +1127,7 @@
         requestAnimationFrame(tick);
       }
       tick();
-      $$("a, button, .tag, .project-card").forEach((el) => {
+      $$("a, button, .tag, .project-card, .footer-inner span").forEach((el) => {
         el.addEventListener("mouseenter", () => ring.classList.add("active"));
         el.addEventListener("mouseleave", () => ring.classList.remove("active"));
       });
@@ -1277,7 +1312,8 @@ Languages: Arabic (Native) · English (Professional)
         rotateY: -78,
         opacity: 0,
         duration: 0.72,
-        stagger: 0.12
+        stagger: 0.12,
+        clearProps: "transform"
       });
       gsap.to(".tag", {
         scrollTrigger: { trigger: "#skills", start: "top 60%" },
@@ -1288,20 +1324,23 @@ Languages: Arabic (Native) · English (Professional)
         stagger: 0.035,
         ease: "back.out(1.8)"
       });
-      gsap.to(".ring", {
-        scrollTrigger: { trigger: "#skills", start: "top 58%" },
-        duration: 1.1,
-        stagger: 0.08,
-        ease: "power2.out",
-        onUpdate: function () {
-          const ring = this.targets()[0];
-          const progress = this.progress() * Number(ring.dataset.level) * 3.6;
-          ring.style.background = `conic-gradient(var(--ring-color, var(--orchid)) ${progress}deg, rgba(250,240,245,0.08) 0deg)`;
-        },
-        onComplete: function () {
-          const ring = this.targets()[0];
-          ring.style.background = `conic-gradient(var(--ring-color, var(--orchid)) ${Number(ring.dataset.level) * 3.6}deg, rgba(250,240,245,0.08) 0deg)`;
-        }
+      const skillsTl = gsap.timeline({
+        scrollTrigger: { trigger: "#skills", start: "top 58%" }
+      });
+      gsap.utils.toArray(".ring").forEach((ring, idx) => {
+        const progressObj = { value: 0 };
+        skillsTl.to(progressObj, {
+          value: 1,
+          duration: 1.1,
+          ease: "power2.out",
+          onUpdate: () => {
+            const progress = progressObj.value * Number(ring.dataset.level) * 3.6;
+            ring.style.background = `conic-gradient(var(--ring-color, var(--orchid)) ${progress}deg, rgba(250,240,245,0.08) 0deg)`;
+          },
+          onComplete: () => {
+            ring.style.background = `conic-gradient(var(--ring-color, var(--orchid)) ${Number(ring.dataset.level) * 3.6}deg, rgba(250,240,245,0.08) 0deg)`;
+          }
+        }, idx * 0.08);
       });
       gsap.from(".project-card", {
         scrollTrigger: { trigger: ".projects-grid", start: "top 70%" },
